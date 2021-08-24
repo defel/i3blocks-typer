@@ -1,0 +1,91 @@
+ifdef::env-github[]
+:imagesdir: https://raw.githubusercontent.com/defel/i3blocks-typer/master/.github/assets/
+endif::[]
+
+## i3blocks typer
+
+> learn some new python tricks while learning i3blocks
+
+This is a typer-application I use for my https://github.com/vivien/i3blocks[i3blocks] in i3bar, but I can also call these commands directly on the shell (thanks https://github.com/tiangolo/typer[typer]) 🎉
+
+### demo
+
+image::demo.png[]
+
+### i3 conf
+
+.~/.config/i3blocks/config
+[source]
+----
+[bat] # <1>
+command=i3block-typer/main.py battery show
+interval=30
+ 
+[volOut] # <2>
+label=OUT
+mixer=Master
+command=i3block-typer/main.py volume show
+interval=60
+signal=12
+
+[volIn] # <3>
+label=IN
+mixer=Capture
+command=i3block-typer/main.py volume show
+interval=60
+signal=13
+----
+<1> this blocks show battery info
+<2> this blocks show and modify master volume info
+<3> this blocks show and modify microphone volume info
+
+
+#### Scripts
+
+##### Battery
+
+> Unix never says 'please' (like, please attach power adapter)
+
+Just outputs the battery usage:
+
+../main.py battery show
+....
+BAT0 ⚡ 99%
+⚡ 99%
+#00fa00
+#000000
+....
+
+When battery is lower than 50% -> color is yellow.
+When battery is lower than 10% -> background is red.
+
+
+##### Volume
+
+> turn it up to eleven
+
+This block listen reacts to `BLOCK_BUTTON`:
+
+- on `scroll_up`: increase volume.
+- on `scroll_down`: decrease volume.
+
+
+
+../main.py volume show
+....
+🔊 55
+🔊 55
+#ffffff
+#000000
+....
+
+
+../main.py volume incvolume
+....
+# no output, but sets the volumne
+....
+
+.mixer=Capture ./main.py volume incvolume
+....
+# same but for capture device (aka mic)
+....

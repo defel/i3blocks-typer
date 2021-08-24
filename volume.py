@@ -1,7 +1,7 @@
 import typer
 import batinfo
 from os import getenv
-from alsaaudio import Mixer
+from alsaaudio import Mixer, ALSAAudioError
 from pydantic.color import Color
 from models import I3Proto, BlockButton
 
@@ -10,11 +10,32 @@ app = typer.Typer()
 steps = getenv("steps", 5)
 mixer = mixer = Mixer(getenv("mixer", "Master"))
 
+# print(mixer.volumecap())
+
 def isMuted():
-    return mixer.getmute()[0] == 1
+    try:
+        return mixer.getmute()[0] == 1
+    except ALSAAudioError:
+        return False
+
+def getDirection():
+    if "Capture Volume" in mixer.volumecap():
+        return 1
+    else:
+        return 0
 
 def getVolume():
-    return mixer.getvolume()[0]
+    try:
+        return mixer.getvolume(getDirection())[0]
+    except IndexError:
+        return 0
+
+def setVolume(volume):
+    return mixer.setvolume(
+        volume,
+        -1,
+        getDirection()
+    )
 
 def render(muted, volume):
     out = I3Proto()
@@ -43,18 +64,18 @@ def decVolume():
     else: 
         vol = vol - steps
 
-    mixer.setvolume(vol)
+    setVolume(vol)
 
 @app.command()
 def incVolume():
     vol = getVolume()
 
-    if(vol > 100):
+    if(vol > 95):
         vol = 100
     else: 
         vol = vol + steps
 
-    mixer.setvolume(vol)
+    setVolume(vol)
 
 @app.command()
 def show():
